@@ -7,9 +7,9 @@
   "packageName": "com.microsoft.teams.videopp",
   "developer": {
     "name": "Hackathon-team",
-    "websiteUrl": "https://richa008.github.io/Teams-VideoApp-Hackathon",
-    "privacyUrl": "https://richa008.github.io/Teams-VideoApp-Hackathon",
-    "termsOfUseUrl": "https://richa008.github.io/Teams-VideoApp-Hackathon"
+    "websiteUrl": "https://manyang.github.io/Teams-VideoApp-Hackathon",
+    "privacyUrl": "https://manyang.github.io/Teams-VideoApp-Hackathon",
+    "termsOfUseUrl": "https://manyang.github.io/Teams-VideoApp-Hackathon"
   },
   "icons": {
     "color": "icon-color.png",
@@ -51,6 +51,6 @@
         "thumbnail": "half.png"
       }
     ],
-    "videoAppContentUrl": "https://richa008.github.io/Teams-VideoApp-Hackathon/app/index.html"
+    "videoAppContentUrl": "https://manyang.github.io/Teams-VideoApp-Hackathon/app/index.html"
   }
 }
