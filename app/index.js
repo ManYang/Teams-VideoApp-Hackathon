@@ -1,27 +1,46 @@
 microsoftTeams.initialize(() => {}, [
   "https://lubobill1990.github.io",
+  "https://richa008.github.io",
 ]);
-
 // This is the effect for processing
+
 let appliedEffect = {
-  pixelValue: 100,
-  proportion: 3,
+  effect: null,
 };
+
+let filterOrchestrator;
+let canvas;
+let gl;
+canvas = document.createElement("canvas");
+gl = canvas.getContext("webgl");
 
 // This is the effect linked with UI
 let uiSelectedEffect = {};
 
 let errorOccurs = false;
+
 //Sample video effect
 function videoFrameHandler(videoFrame, notifyVideoProcessed, notifyError) {
-  const maxLen =
-    (videoFrame.height * videoFrame.width) /
-      Math.max(1, appliedEffect.proportion) - 4;
+  processAndSend(videoFrame, notifyVideoProcessed, notifyError);
+}
 
-  for (let i = 1; i < maxLen; i += 4) {
-    //smaple effect just change the value to 100, which effect some pixel value of video frame
-    videoFrame.data[i + 1] = appliedEffect.pixelValue;
-  }
+function processAndSend(videoFrame, notifyVideoProcessed, notifyError) {
+  console.log(
+    "height:",
+    videoFrame.height,
+    "width:",
+    videoFrame.width,
+    "numRes:",
+    videoFrame.data.length
+  );
+
+  // if (appliedEffect.effect != null) {
+  filterOrchestrator.processImage(
+    videoFrame.data,
+    videoFrame.width,
+    videoFrame.height
+  );
+  // }
 
   //send notification the effect processing is finshed.
   notifyVideoProcessed();
@@ -33,48 +52,83 @@ function videoFrameHandler(videoFrame, notifyVideoProcessed, notifyError) {
 }
 
 function effectParameterChanged(effectName) {
-  console.log(effectName);
-  if (effectName === undefined) {
-    // If effectName is undefined, then apply the effect selected in the UI
-    appliedEffect = {
-      ...appliedEffect,
-      ...uiSelectedEffect,
-    };
-  } else {
-    if (effectName === "f36d7f68-7c71-41f5-8fd9-ebf0ae38f949") {
-      appliedEffect.proportion = 2;
-      appliedEffect.pixelValue = 200;
-    } else {
-      // if effectName is string sent from Teams client, the apply the effectName
-      try {
-        appliedEffect = {
-          ...appliedEffect,
-          ...JSON.parse(effectName),
-        };
-      } catch (e) {}
-    }
-  }
+  // if (effectName != undefined) {
+  //   // addCheckMark(previewFilterMapping[effectName], false);
+  //   uiSelectedEffect.effect = previewFilterMapping[effectName]
+  // }
+
+  appliedEffect = {
+    ...appliedEffect,
+    ...uiSelectedEffect,
+  };
 }
 
-microsoftTeams.appInitialization.notifySuccess();
-microsoftTeams.video.registerForVideoEffect(effectParameterChanged);
-microsoftTeams.video.registerForVideoFrame(videoFrameHandler, {
-  format: "NV12",
-});
+// function addCheckMark(id, isClickListener) {
+//   var _this = document.getElementById(id)
 
-// any changes to the UI should notify Teams client.
-document.getElementById("enable_check").addEventListener("change", function () {
-  if (this.checked) {
-    microsoftTeams.video.notifySelectedVideoEffectChanged("EffectChanged");
-  } else {
-    microsoftTeams.video.notifySelectedVideoEffectChanged("EffectDisabled");
+//   var current = document.getElementsByClassName("selected");
+//   if (current.length) {
+//     var checked = document.getElementById("selected");
+//     checked.parentNode.removeChild(checked);
+//     current[0].className = current[0].className.replace(" selected", "");
+//   }
+//   _this.className += " selected";
+//   var checked = document.getElementById("template").cloneNode(true);
+//   checked.setAttributeNS(null, "id", "selected");
+//   checked.setAttributeNS(null, "class", "checked");
+//   _this.appendChild(checked);
+
+//   console.log("Current using filter:", id)
+
+//   if (isClickListener) {
+//     // call Teams API to annouce the selected filter
+//     uiSelectedEffect.effect = id;
+//     microsoftTeams.video.notifySelectedVideoEffectChanged("EffectChanged", previewFilterMappingRevert[id]);
+//     // microsoftTeams.videoApp.notifySelectedVideoEffectChanged("EffectChanged", previewFilterMappingRevert[id]);
+//   }
+
+// }
+
+function preload() {
+  // var content = document.getElementsByClassName("co");
+  // var imgs = document.getElementsByClassName("candidate");
+  // for (var i = 0; i < imgs.length; i++) {
+  //   imgs[i].addEventListener("click", function (event) { addCheckMark(event.target.parentNode.id, true) });
+  // }
+
+  microsoftTeams.appInitialization.notifySuccess();
+
+  filterOrchestrator = new FilterOrchestrator();
+  // await loadDataAsync();
+
+  microsoftTeams.video.registerForVideoEffect(effectParameterChanged);
+  microsoftTeams.video.registerForVideoFrame(videoFrameHandler, {
+    format: "NV12",
+  });
+}
+
+preload();
+
+function showArrayAsStr(arr) {
+  var s = "";
+  for (let i = 0; i < arr.length; i++) {
+    s = s + "," + arr[i];
   }
-});
-document.getElementById("proportion").addEventListener("change", function () {
-  uiSelectedEffect.proportion = this.value;
-  microsoftTeams.video.notifySelectedVideoEffectChanged("EffectChanged");
-});
-document.getElementById("pixel_value").addEventListener("change", function () {
-  uiSelectedEffect.pixelValue = this.value;
-  microsoftTeams.video.notifySelectedVideoEffectChanged("EffectChanged");
-});
+  return s;
+}
+
+function getShader(source, type) {
+  var shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert("ERROR IN SHADER : " + gl.getShaderInfoLog(shader));
+    return false;
+  }
+  return shader;
+}
+
+function resizeCanvas(canvas, width, height) {
+  canvas.width = width;
+  canvas.height = height;
+}
