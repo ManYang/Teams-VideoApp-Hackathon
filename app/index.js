@@ -4,15 +4,17 @@ microsoftTeams.initialize(() => {}, [
 ]);
 // This is the effect for processing
 
-let appliedEffect = {
-  effect: null,
-};
-
 let filterOrchestrator;
 let canvas;
 let gl;
 canvas = document.createElement("canvas");
 gl = canvas.getContext("webgl");
+
+// This is the effect for processing
+let appliedEffect = {
+  pixelValue: 255,
+  proportion: 3,
+};
 
 // This is the effect linked with UI
 let uiSelectedEffect = {};
@@ -21,7 +23,19 @@ let errorOccurs = false;
 
 //Sample video effect
 function videoFrameHandler(videoFrame, notifyVideoProcessed, notifyError) {
-  processAndSend(videoFrame, notifyVideoProcessed, notifyError);
+  // processAndSend(videoFrame, notifyVideoProcessed, notifyError);
+  for (let i = 0; i < videoFrame.data.length; i++) {
+    // Invert the colors
+    videoFrame.data[i] = appliedEffect.pixelValue - videoFrame.data[i]; 
+  }
+
+  //send notification the effect processing is finshed.
+  notifyVideoProcessed();
+
+  //send error to Teams
+  if (errorOccurs) {
+    notifyError("some error message");
+  }
 }
 
 function processAndSend(videoFrame, notifyVideoProcessed, notifyError) {
